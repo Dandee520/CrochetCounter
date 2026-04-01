@@ -7,7 +7,7 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin-top: 80px;
+            margin-top: 50px;
             background-color: #f5f5f5;
         }
 
@@ -38,6 +38,31 @@
             background-color: #f44336;
             color: white;
         }
+
+        .clearLog {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        #logBoard {
+            margin-top: 30px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        #logBoard h2 {
+            text-align: center;
+        }
+
+        .logItem {
+            background-color: #fff;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -48,28 +73,59 @@
     <button class="increment" onclick="increment()">+ Stitch</button>
     <button class="reset" onclick="resetCounter()">Reset</button>
 
+    <!-- Log board -->
+    <div id="logBoard">
+        <h2>Stitch Log</h2>
+        <div id="logItems"></div>
+        <button class="clearLog" onclick="clearLog()">Clear Log</button>
+    </div>
+
     <script>
         // Load saved count
-        let count = localStorage.getItem("crochetCount");
-
-        if (count === null) {
-            count = 0;
-        } else {
-            count = parseInt(count);
-        }
-
+        let count = parseInt(localStorage.getItem("crochetCount")) || 0;
         document.getElementById("count").innerText = count;
 
+        // Load stitch log
+        let stitchLog = JSON.parse(localStorage.getItem("stitchLog")) || [];
+        const logContainer = document.getElementById("logItems");
+
+        function renderLog() {
+            logContainer.innerHTML = "";
+            stitchLog.forEach((num, index) => {
+                const div = document.createElement("div");
+                div.className = "logItem";
+                div.innerText = `Entry ${index + 1}: ${num} stitches`;
+                logContainer.appendChild(div);
+            });
+        }
+
+        renderLog();
+
+        // Increment counter
         function increment() {
             count++;
             updateDisplay();
         }
 
+        // Reset counter and save to log
         function resetCounter() {
+            if (count > 0) {
+                stitchLog.push(count);
+                localStorage.setItem("stitchLog", JSON.stringify(stitchLog));
+                renderLog();
+            }
             count = 0;
             updateDisplay();
         }
 
+        // Clear the log
+        function clearLog() {
+            stitchLog = [];
+            localStorage.removeItem("stitchLog");
+            renderLog();
+        }
+
+        // Update count display and save
         function updateDisplay() {
             document.getElementById("count").innerText = count;
             localStorage.setItem("crochetCount", count);
