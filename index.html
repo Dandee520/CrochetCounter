@@ -7,23 +7,34 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin-top: 50px;
+            margin-top: 40px;
             background-color: #f5f5f5;
         }
 
         h1 {
-            font-size: 40px;
+            font-size: 36px;
         }
 
-        #count {
-            font-size: 80px;
+        .counter-container {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
             margin: 20px 0;
         }
 
+        .counter-box {
+            text-align: center;
+        }
+
+        .count-number {
+            font-size: 70px;
+            margin: 10px 0;
+        }
+
         button {
-            font-size: 24px;
-            padding: 15px 25px;
-            margin: 10px;
+            font-size: 20px;
+            padding: 10px 20px;
+            margin: 5px;
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -39,6 +50,11 @@
             color: white;
         }
 
+        .rowReset {
+            background-color: #ff9800;
+            color: white;
+        }
+
         .clearLog {
             background-color: #2196F3;
             color: white;
@@ -46,22 +62,26 @@
 
         #logBoard {
             margin-top: 30px;
-            max-width: 300px;
+            max-width: 400px;
             margin-left: auto;
             margin-right: auto;
-            text-align: left;
         }
 
-        #logBoard h2 {
-            text-align: center;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        .logItem {
-            background-color: #fff;
+        th, td {
             padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #eee;
         }
     </style>
 </head>
@@ -71,68 +91,116 @@
     <img src="CrochetCat.jpg" alt="Crochet" style="width:150px; height:auto; margin-bottom:20px; border-radius:10px;">
 
     <h1>🧶 Crochet Counter</h1>
-    <div id="count">0</div>
 
-    <button class="increment" onclick="increment()">+ Stitch</button>
-    <button class="reset" onclick="resetCounter()">Reset</button>
+    <div class="counter-container">
+        <!-- Stitch Counter -->
+        <div class="counter-box">
+            <h3>Stitches</h3>
+            <div id="stitchCount" class="count-number">0</div>
+            <button class="increment" onclick="incrementStitch()">+ Stitch</button>
+            <button class="reset" onclick="resetStitch()">Reset</button>
+        </div>
+
+        <!-- Row Counter -->
+        <div class="counter-box">
+            <h3>Rows</h3>
+            <div id="rowCount" class="count-number">0</div>
+            <button class="increment" onclick="incrementRow()">+ Row</button>
+            <button class="rowReset" onclick="resetRow()">Reset</button>
+        </div>
+    </div>
 
     <!-- Log board -->
     <div id="logBoard">
-        <h2>Stitch Log</h2>
-        <div id="logItems"></div>
+        <h2>Project Log</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Stitches</th>
+                    <th>Rows</th>
+                </tr>
+            </thead>
+            <tbody id="logItems"></tbody>
+        </table>
+        <br>
         <button class="clearLog" onclick="clearLog()">Clear Log</button>
     </div>
 
     <script>
-        // Load saved count
-        let count = parseInt(localStorage.getItem("crochetCount")) || 0;
-        document.getElementById("count").innerText = count;
+        // Load saved values
+        let stitchCount = parseInt(localStorage.getItem("stitchCount")) || 0;
+        let rowCount = parseInt(localStorage.getItem("rowCount")) || 0;
 
-        // Load stitch log
         let stitchLog = JSON.parse(localStorage.getItem("stitchLog")) || [];
+
+        const stitchDisplay = document.getElementById("stitchCount");
+        const rowDisplay = document.getElementById("rowCount");
         const logContainer = document.getElementById("logItems");
+
+        function updateDisplay() {
+            stitchDisplay.innerText = stitchCount;
+            rowDisplay.innerText = rowCount;
+
+            localStorage.setItem("stitchCount", stitchCount);
+            localStorage.setItem("rowCount", rowCount);
+        }
 
         function renderLog() {
             logContainer.innerHTML = "";
-            stitchLog.forEach((num, index) => {
-                const div = document.createElement("div");
-                div.className = "logItem";
-                div.innerText = `Entry ${index + 1}: ${num} stitches`;
-                logContainer.appendChild(div);
+            stitchLog.forEach(entry => {
+                const row = document.createElement("tr");
+
+                const stitchCell = document.createElement("td");
+                stitchCell.innerText = entry.stitches;
+
+                const rowCell = document.createElement("td");
+                rowCell.innerText = entry.rows;
+
+                row.appendChild(stitchCell);
+                row.appendChild(rowCell);
+                logContainer.appendChild(row);
             });
         }
 
-        renderLog();
-
-        // Increment counter
-        function increment() {
-            count++;
+        // Stitch functions
+        function incrementStitch() {
+            stitchCount++;
             updateDisplay();
         }
 
-        // Reset counter and save to log
-        function resetCounter() {
-            if (count > 0) {
-                stitchLog.push(count);
+        function resetStitch() {
+            if (stitchCount > 0 || rowCount > 0) {
+                stitchLog.push({
+                    stitches: stitchCount,
+                    rows: rowCount
+                });
                 localStorage.setItem("stitchLog", JSON.stringify(stitchLog));
                 renderLog();
             }
-            count = 0;
+            stitchCount = 0;
             updateDisplay();
         }
 
-        // Clear the log
+        // Row functions
+        function incrementRow() {
+            rowCount++;
+            updateDisplay();
+        }
+
+        function resetRow() {
+            rowCount = 0;
+            updateDisplay();
+        }
+
         function clearLog() {
             stitchLog = [];
             localStorage.removeItem("stitchLog");
             renderLog();
         }
 
-        // Update count display and save
-        function updateDisplay() {
-            document.getElementById("count").innerText = count;
-            localStorage.setItem("crochetCount", count);
-        }
+        // Init
+        updateDisplay();
+        renderLog();
     </script>
 
 </body>
